@@ -1,0 +1,372 @@
+#include <opencv2/highgui/highgui.hpp>
+#include "Image_enhancement.h"
+#include <opencv2/core/core.hpp>
+
+#include "quickdemo.h"
+using namespace std;
+
+
+GUI gui;//gui界面操作
+
+
+// ʵ���ı���ؼ�
+class EasyTextBox
+{
+private:
+	int left = 0, top = 0, right = 0, bottom = 0;	// �ؼ�����
+	wchar_t* text = NULL;							// �ؼ�����
+	size_t maxlen = 0;									// �ı���������ݳ���
+
+public:
+	void Create(int x1, int y1, int x2, int y2, int max)
+	{
+		maxlen = max;
+		text = new wchar_t[maxlen];
+		text[0] = 0;
+		left = x1, top = y1, right = x2, bottom = y2;
+
+		// �����û�����
+		Show();
+	}
+
+	~EasyTextBox()
+	{
+		if (text != NULL)
+			delete[] text;
+	}
+
+	wchar_t* Text()
+	{
+		return text;
+	}
+
+	bool Check(int x, int y)
+	{
+		return (left <= x && x <= right && top <= y && y <= bottom);
+	}
+
+	// ���ƽ���
+	void Show()
+	{
+		// ���ݻ���ֵ
+		int oldlinecolor = getlinecolor();
+		int oldbkcolor = getbkcolor();
+		int oldfillcolor = getfillcolor();
+
+		setlinecolor(LIGHTGRAY);		// ���û�����ɫ
+		setbkcolor(0xeeeeee);			// ���ñ�����ɫ
+		setfillcolor(0xeeeeee);			// ���������ɫ
+		fillrectangle(left, top, right, bottom);
+		outtextxy(left + 10, top + 5, text);
+
+		// �ָ�����ֵ
+		setlinecolor(oldlinecolor);
+		setbkcolor(oldbkcolor);
+		setfillcolor(oldfillcolor);
+	}
+
+	void OnMessage()
+	{
+		// ���ݻ���ֵ
+		int oldlinecolor = getlinecolor();
+		int oldbkcolor = getbkcolor();
+		int oldfillcolor = getfillcolor();
+
+		setlinecolor(BLACK);			// ���û�����ɫ
+		setbkcolor(WHITE);				// ���ñ�����ɫ
+		setfillcolor(WHITE);			// ���������ɫ
+		fillrectangle(left, top, right, bottom);
+		outtextxy(left + 10, top + 5, text);
+
+		int width = textwidth(text);	// �ַ����ܿ��
+		int counter = 0;				// �����˸������
+		bool binput = true;				// �Ƿ�������
+
+		ExMessage msg;
+		while (binput)
+		{
+			while (binput && peekmessage(&msg, EM_MOUSE | EM_CHAR, false))	// ��ȡ��Ϣ����������Ϣ�����ó�
+			{
+				if (msg.message == WM_LBUTTONDOWN)
+				{
+					// ���������ı������棬�����ı�����
+					if (msg.x < left || msg.x > right || msg.y < top || msg.y > bottom)
+					{
+						binput = false;
+						break;
+					}
+				}
+				else if (msg.message == WM_CHAR)
+				{
+					size_t len = wcslen(text);
+					switch (msg.ch)
+					{
+					case '\b':				// �û����˸����ɾ��һ���ַ�
+						if (len > 0)
+						{
+							text[len - 1] = 0;
+							width = textwidth(text);
+							counter = 0;
+							clearrectangle(left + 10 + width, top + 1, right - 1, bottom - 1);
+						}
+						break;
+					case '\r':				// �û����س����������ı�����
+					case '\n':
+						binput = false;
+						break;
+					default:				// �û����������������ı�����
+						if (len < maxlen - 1)
+						{
+							text[len++] = msg.ch;
+							text[len] = 0;
+
+							clearrectangle(left + 10 + width + 1, top + 3, left + 10 + width + 1, bottom - 3);	// ������Ĺ��
+							width = textwidth(text);				// ���¼����ı�����
+							counter = 0;
+							outtextxy(left + 10, top + 5, text);		// ����µ��ַ���
+						}
+					}
+				}
+				peekmessage(NULL, EM_MOUSE | EM_CHAR);				// ����Ϣ���������ոմ������һ����Ϣ
+			}
+
+			// ���ƹ�꣨�����˸����Ϊ 20ms * 32��
+			counter = (counter + 1) % 32;
+			if (counter < 16)
+				line(left + 10 + width + 1, top + 3, left + 10 + width + 1, bottom - 3);				// �����
+			else
+				clearrectangle(left + 10 + width + 1, top + 3, left + 10 + width + 1, bottom - 3);		// �����
+
+			// ��ʱ 20ms
+			Sleep(20);
+		}
+
+		clearrectangle(left + 10 + width + 1, top + 3, left + 10 + width + 1, bottom - 3);	// �����
+
+		// �ָ�����ֵ
+		setlinecolor(oldlinecolor);
+		setbkcolor(oldbkcolor);
+		setfillcolor(oldfillcolor);
+
+		Show();
+	}
+};
+
+
+
+// ʵ�ְ�ť�ؼ�
+class EasyButton
+{
+private:
+	int left = 0, top = 0, right = 0, bottom = 0;	// �ؼ�����
+	wchar_t* text = NULL;							// �ؼ�����
+	void (*userfunc)() = NULL;						// �ؼ���Ϣ
+
+public:
+	void Create(int x1, int y1, int x2, int y2, const wchar_t* title, void (*func)())
+	{
+		text = new wchar_t[wcslen(title) + 1];
+		wcscpy_s(text, wcslen(title) + 1, title);
+		left = x1, top = y1, right = x2, bottom = y2;
+		userfunc = func;
+
+		// �����û�����
+		Show();
+	}
+
+	~EasyButton()
+	{
+		if (text != NULL)
+			delete[] text;
+	}
+
+	bool Check(int x, int y)
+	{
+		return (left <= x && x <= right && top <= y && y <= bottom);
+	}
+
+	// ���ƽ���
+	void Show()
+	{
+		int oldlinecolor = getlinecolor();
+		int oldbkcolor = getbkcolor();
+		int oldfillcolor = getfillcolor();
+
+		setlinecolor(BLACK);			// ���û�����ɫ
+		setbkcolor(WHITE);				// ���ñ�����ɫ
+		setfillcolor(WHITE);			// ���������ɫ
+		fillrectangle(left, top, right, bottom);
+		outtextxy(left + (right - left - textwidth(text) + 1) / 2, top + (bottom - top - textheight(text) + 1) / 2, text);
+
+		setlinecolor(oldlinecolor);
+		setbkcolor(oldbkcolor);
+		setfillcolor(oldfillcolor);
+	}
+
+	void OnMessage()
+	{
+		if (userfunc != NULL)
+			userfunc();
+	}
+};
+
+
+#include <windows.h>
+#include <string>
+
+//不要忘记使用完char*后delete[]释放内存
+std::string wideCharToMultiByte(wchar_t* pWCStrKey)
+{
+	//第一次调用确认转换后单字节字符串的长度，用于开辟空间
+	int pSize = WideCharToMultiByte(CP_OEMCP, 0, pWCStrKey, wcslen(pWCStrKey), NULL, 0, NULL, NULL);
+	char* pCStrKey = new char[pSize + 1];
+	//第二次调用将双字节字符串转换成单字节字符串
+	WideCharToMultiByte(CP_OEMCP, 0, pWCStrKey, wcslen(pWCStrKey), pCStrKey, pSize, NULL, NULL);
+	pCStrKey[pSize] = '\0';
+	std::string pKey = pCStrKey;
+	return pKey;
+
+	//如果想要转换成string，直接赋值即可
+
+}
+// ����ؼ�
+EasyTextBox txtName;
+EasyTextBox txtPwd;
+EasyButton btnOK;
+
+
+
+// ��ť btnOK �ĵ���¼�
+void On_btnOk_Click()
+{
+	if (wcscmp(L"123", txtPwd.Text()));
+		
+	else
+	{
+		wchar_t s[100] = L"Hello, ";
+		wcscat_s(s, 100, txtName.Text());
+		MessageBox(GetHWnd(), s, L"Hello", MB_OK);
+	}
+
+	wchar_t* wstr;
+	wstr = new wchar_t[wcslen(txtName.Text()) + 1];
+	wcscpy_s(wstr, wcslen(txtName.Text()) + 1, txtName.Text());
+	std::string str = wideCharToMultiByte(wstr);
+	cv::Mat img = cv::imread(str);
+	if (img.empty())
+	{
+		std::cout << "No find this img" << std::endl;
+		MessageBox(GetHWnd(), L"No find this img", L"Error", MB_OK);
+	}
+	else
+	{
+		gui.loadImg(wstr, 65, 295, 220, 250);
+		MessageBox(GetHWnd(), L"载入图片成功", L"info", MB_OK);
+	}
+}
+
+
+const int GraphWidth = 1080;
+const int GrapHeight = 640;
+int main()
+{
+	cv::Mat src = cv::imread("C:/Users/HRQ/Pictures/lena.jpg");
+	Demo demo;
+	// 图像文件的基本操作：打开、保存、另存、打印、退出
+	//demo.Image_basic_operation(src, "D:/桌面/");
+
+	//数字图像的统计信息功能：直方图的统计及绘制
+	//demo.Draw_histogram(src);
+
+	//数字图像的增强处理功能：直方图均衡化
+	//demo.Histogram_equalization(src);
+
+	//数字图像的增强处理功能：灰度拉伸
+	 //demo.Grayscale_stretching(src);
+
+	//数字图像的增强处理功能：动态范围调整
+	// demo.quantizie(src, 8);
+
+	//空间域平滑算法：均值滤波
+	// demo.Mean_filtering(src);
+
+	//空间域平滑算法：中值滤波
+	// demo.Median_filtering(src);
+
+	// 空间域平滑算法：高斯滤波
+	 //demo.Gaussian_filtering(src);
+
+	// 空间域平滑算法：双边滤波
+	// demo.Bilateral_filtering(src);
+
+	//空间域锐化算法：Sobel算子
+	// demo.Sobel_operator(src);
+
+	//空间域锐化算法：Laplacian算子
+	 //demo.Laplacian_operator(src);
+
+	//空间域锐化算法：Roberts算子
+	// demo.Roberts_operator(src);
+
+	//空间域锐化算法：Prewitt算子
+	// demo.Prewitt_operator( src);
+
+	//彩色数字图像由RGB转换成HIS空间并分别显示其分量图*
+	 //demo.RGB_to_HSI(src);
+
+	//数字图像分割：大津法
+	 //demo.Otsu_segmentation(src);
+
+	//数字图像分割：区域生长法
+	//demo.Regional_growth_segmentation(src);
+
+	//数字图像分割：分水岭算法
+	// demo.Watershed_segmentation(src);
+		// ����ͼ�δ���
+	initgraph(GraphWidth, GrapHeight,EW_SHOWCONSOLE);
+	HWND hn = GetHWnd();//��ȡ�������ֵĺ���
+	SetWindowText(hn, L"风落图像处理器");//�޸Ĵ������ֺ���
+
+
+	GUI gui;
+	gui.setimgbk(L"images/启动页面.jpg");
+	// ���ƿ�ʼ����
+
+	gui.puttext(355, 320, L"风落图像处理器", WHITE, 50, 0);
+	gui.puttext(425, 400, L"点击任意处开始ʼ", WHITE, 30, 0);
+
+	gui.monitorleftmouse(GraphWidth, GrapHeight);//�л�����
+
+	gui.setimgbk(L"images/运行页面.jpg");// �������н���
+
+	gui.puttext(50, 55, L"输入图像地址", WHITE, 30, 0); // ���������ı���ؼ�
+	txtName.Create(270, 55, 800, 85, 48);
+
+	gui.puttext(50, 105, L"输出图像地址", WHITE, 30, 0); // ��������ı���ؼ�
+	txtPwd.Create(270, 105, 800, 135, 48);
+
+	settextcolor(BLACK);
+	btnOK.Create(826, 55, 1018, 85, L"载入图像", On_btnOk_Click);	// ������ť�ؼ�
+	btnOK.Create(826, 105, 1018, 135, L"导出图像", On_btnOk_Click);	// ������ť�ؼ�
+	ExMessage msg;
+	while (true)
+	{
+		msg = getmessage(EM_MOUSE);			// ��ȡ��Ϣ����
+
+		if (msg.message == WM_LBUTTONDOWN)
+		{
+			// �жϿؼ�
+			if (txtName.Check(msg.x, msg.y))	txtName.OnMessage();
+
+			// �жϿؼ�
+			if (txtPwd.Check(msg.x, msg.y))		txtPwd.OnMessage();
+
+			// �жϿؼ�
+			if (btnOK.Check(msg.x, msg.y))		btnOK.OnMessage();
+		}
+	}
+
+	// �رջ�ͼ����
+	closegraph();
+	return 0;
+}

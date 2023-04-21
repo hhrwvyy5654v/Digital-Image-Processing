@@ -1,0 +1,36 @@
+﻿  quickdemo.cpp
+D:\Programming_development\Digital image processing\图像增强处理系统\quickdemo.cpp(77,35): warning C4390: “;”: 找到空的受控语句；这是否是有意的?
+  Specific_function.cpp
+D:\Programming_development\Digital image processing\图像增强处理系统\Specific_function.cpp(419,10): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+D:\Programming_development\Digital image processing\图像增强处理系统\Specific_function.cpp(420,10): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+D:\Programming_development\Digital image processing\图像增强处理系统\Specific_function.cpp(421,10): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+D:\Programming_development\Digital image processing\图像增强处理系统\Specific_function.cpp(423,14): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+D:\Programming_development\Digital image processing\图像增强处理系统\Specific_function.cpp(431,17): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+D:\Programming_development\Digital image processing\图像增强处理系统\Specific_function.cpp(438,12): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+D:\Programming_development\Digital image processing\图像增强处理系统\Specific_function.cpp(439,10): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+D:\Programming_development\Digital image processing\图像增强处理系统\Specific_function.cpp(442,35): warning C4244: “=”: 从“float”转换到“_Tp”，可能丢失数据
+          with
+          [
+              _Tp=uchar
+          ]
+D:\Programming_development\Digital image processing\图像增强处理系统\Specific_function.cpp(443,35): warning C4244: “=”: 从“float”转换到“_Tp”，可能丢失数据
+          with
+          [
+              _Tp=uchar
+          ]
+D:\Programming_development\Digital image processing\图像增强处理系统\Specific_function.cpp(444,35): warning C4244: “=”: 从“float”转换到“_Tp”，可能丢失数据
+          with
+          [
+              _Tp=uchar
+          ]
+D:\Programming_development\Digital image processing\图像增强处理系统\Specific_function.cpp(481,18): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+D:\Programming_development\Digital image processing\图像增强处理系统\Specific_function.cpp(482,18): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+  main.cpp
+D:\Programming_development\Digital image processing\图像增强处理系统\main.cpp(223,96): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+D:\Programming_development\Digital image processing\图像增强处理系统\main.cpp(226,92): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+  正在生成代码
+  361 of 368 functions (98.1%) were compiled, the rest were copied from previous compilation.
+    12 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
+  已完成代码的生成
+  Project1.vcxproj -> D:\Programming_development\Digital image processing\图像增强处理系统\x64\Release\Project1.exe
